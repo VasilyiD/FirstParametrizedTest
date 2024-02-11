@@ -44,9 +44,9 @@ public class GitHubDocsTest extends BaseTest {
             List<String> information
     ) {
         open("https://docs.github.com/");
-        $("#\\:Racr6\\:").click();
-        $$("#__primerPortalRoot__ > div > div > div > ul").find(Condition.text(languages.getName())).click();
-        $$x("//*[@id= 'main-content' ]/div/section[2]/div/div/div[1]/div/div[2]/ul")
+        $("[type = button] .octicon-globe").click();
+        $$("[role = menu] a").find(Condition.text(languages.getName())).click();
+        $$x("//*[@id= 'main-content']/div/section[2]/div/div/div[1]/div/div[2]/ul/li")
                 .filter(visible)
                 .shouldHave(texts(information));
     }

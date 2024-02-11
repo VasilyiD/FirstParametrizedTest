@@ -1,16 +1,15 @@
 package githubdocs;
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.CollectionCondition;
 import githubdocs.data.Languages;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.*;
 import java.util.List;
 import java.util.stream.Stream;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.*;
-import static com.codeborne.selenide.Selenide.open;
 
 public class GitHubDocsTest extends BaseTest {
 
@@ -39,15 +38,53 @@ public class GitHubDocsTest extends BaseTest {
     @MethodSource("GitHubDocsLanguagesDataProvider")
     @ParameterizedTest(name = "Для языка {0} отображается информация {1}")
     @Tag("BLOCKER")
-    void GitHubDocsShouldContainAllOfInformationForGivenLanguage(
+    void gitHubDocsShouldContainAllOfInformationForGivenLanguage(
             Languages languages,
             List<String> information
     ) {
-        open("https://docs.github.com/");
         $("[type = button] .octicon-globe").click();
-        $$("[role = menu] a").find(Condition.text(languages.getName())).click();
+        $$("[role = menu] a").find(text(languages.getName())).click();
         $$x("//*[@id= 'main-content']/div/section[2]/div/div/div[1]/div/div[2]/ul/li")
                 .filter(visible)
                 .shouldHave(texts(information));
     }
+
+    @CsvSource ({
+            "Документация по GitHub,Русский",
+            "GitHub Docs,English"
+    })
+    @ParameterizedTest(name = "Надпись {0} должна отображаться при смене языка на {1}")
+    @Tags({@Tag("CRITICAL"),@Tag("UI_TEST")})
+    void gitHubDocsShouldContainsTitleTextForGivenLanguage(
+            String titleName,
+            String languageType
+    ) {
+        $("[type = button] .octicon-globe").click();
+        $$("[role = menu] a").find(text(languageType)).click();
+        $("#title-h1").shouldHave(text(titleName));
+    }
+
+    @CsvFileSource(resources = "/testData.csv")
+    @ParameterizedTest(name = "Надпись {0} должна отображаться при смене языка на {1}")
+    @Tags({@Tag("MEDIUM"), @Tag("UI_TEST")})
+    void gitHubDocsShouldContainsTitleTextForGivenLanguageFileSourceMethod( String title, String languageName) {
+
+        $("[type = button] .octicon-globe").click();
+        $$("[role = menu] a").find(text(languageName)).click();
+        $("#title-h1").shouldHave(text(title));
+
+    }
+
+    @ValueSource(
+            strings = {"Allure testops", "Selenide"}
+    )
+    @ParameterizedTest(name = "Адрес {1} должен быть в выдаче гугла по запросу {0}")
+    //
+    @Tags({@Tag("BLOCKER"), @Tag("UI_TEST")})
+    void searchResultsCountTest(String productName) {
+        $("[name=q]").setValue(productName).pressEnter();
+        $$("div[class='g']").shouldHave(CollectionCondition.sizeGreaterThan(5));
+    }
+
+
 }
